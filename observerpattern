@@ -1,0 +1,81 @@
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	f_Software := NewSoftUP("iOS 15.1")
+
+	f_Phone := &Soft{sName: "Iphone XS"}
+	s_Phone := &Soft{sName: "Iphone 14 PRO"}
+
+	f_Software.subscribe(f_Phone)
+	f_Software.subscribe(s_Phone)
+
+	f_Software.updateAvailability()
+
+	f_Software.unsubscribe(f_Phone)
+
+	f_Software.updateAvailability()
+}
+
+type Observer interface {
+	update(string)
+	getID() string
+}
+
+type Soft struct {
+	sName string
+}
+
+type Software1 struct {
+	observerList []Observer
+	name         string
+	availability bool
+}
+
+func NewSoftUP(name string) *Software1 {
+	return &Software1{
+		name: name,
+	}
+}
+
+func (s *Software1) subscribe(o Observer) {
+	s.observerList = append(s.observerList, o)
+}
+
+func (s *Software1) unsubscribe(o Observer) {
+	s.observerList = removeList(s.observerList, o)
+}
+
+func (s *Software1) notify() {
+	for _, observer := range s.observerList {
+		observer.update(s.name)
+	}
+}
+
+func (s *Software1) updateAvailability() {
+	fmt.Printf("Software %s is available now\n", s.name)
+	s.availability = true
+	s.notify()
+}
+
+func removeList(observerList []Observer, ObserverToRemove Observer) []Observer {
+	observerListLength := len(observerList)
+	for i, observer := range observerList {
+		if ObserverToRemove.getID() == observer.getID() {
+			observerList[observerListLength-1], observerList[i] = observerList[i], observerList[observerListLength-1]
+			return observerList[:observerListLength-1]
+		}
+	}
+	return observerList
+}
+
+func (s *Soft) update(softName string) {
+	fmt.Printf("Sending update to %s for download %s\n", s.sName, softName)
+}
+
+func (s *Soft) getID() string {
+	return s.sName
+}
